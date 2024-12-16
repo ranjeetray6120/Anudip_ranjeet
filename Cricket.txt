@@ -1,0 +1,153 @@
+CREATE TABLE Teams (
+    team_id INT AUTO_INCREMENT PRIMARY KEY,
+    team_name VARCHAR(100) NOT NULL,
+    coach_name VARCHAR(100),
+    country VARCHAR(50)
+);
+
+DESC 
+
++------------+--------------+------+-----+---------+----------------+
+| Field      | Type         | Null | Key | Default | Extra          |
++------------+--------------+------+-----+---------+----------------+
+| team_id    | int          | NO   | PRI | NULL    | auto_increment |
+| team_name  | varchar(100) | NO   |     | NULL    |                |
+| coach_name | varchar(100) | YES  |     | NULL    |                |
+| country    | varchar(50)  | YES  |     | NULL    |                |
++------------+--------------+------+-----+---------+----------------+
+
+
+CREATE TABLE Players (
+    player_id INT AUTO_INCREMENT PRIMARY KEY,
+    player_name VARCHAR(100) NOT NULL,
+    team_id INT NOT NULL,
+    role ENUM('Batsman', 'Bowler', 'All-rounder', 'Wicket-keeper') NOT NULL,
+    age INT,
+    FOREIGN KEY (team_id) REFERENCES Teams(team_id) ON DELETE CASCADE
+);
+
+
+DESC
+ 
++-------------+--------------------------------------------------------+------+-----+---------+----------------+
+| Field       | Type                                                   | Null | Key | Default | Extra          |
++-------------+--------------------------------------------------------+------+-----+---------+----------------+
+| player_id   | int                                                    | NO   | PRI | NULL    | auto_increment |
+| player_name | varchar(100)                                           | NO   |     | NULL    |                |
+| team_id     | int                                                    | NO   | MUL | NULL    |                |
+| role        | enum('Batsman','Bowler','All-rounder','Wicket-keeper') | NO   |     | NULL    |                |
+| age         | int                                                    | YES  |     | NULL    |                |
++-------------+--------------------------------------------------------+------+-----+---------+----------------+
+
+CREATE TABLE Matches (
+    match_id INT AUTO_INCREMENT PRIMARY KEY,
+    team1_id INT NOT NULL,
+    team2_id INT NOT NULL,
+    venue VARCHAR(100),
+    match_date DATE NOT NULL,
+    match_type ENUM('Test', 'ODI', 'T20') NOT NULL,
+    winner_id INT,
+    FOREIGN KEY (team1_id) REFERENCES Teams(team_id),
+    FOREIGN KEY (team2_id) REFERENCES Teams(team_id),
+    FOREIGN KEY (winner_id) REFERENCES Teams(team_id)
+);
+
+DESC
++------------+--------------------------+------+-----+---------+----------------+
+| Field      | Type                     | Null | Key | Default | Extra          |
++------------+--------------------------+------+-----+---------+----------------+
+| match_id   | int                      | NO   | PRI | NULL    | auto_increment |
+| team1_id   | int                      | NO   | MUL | NULL    |                |
+| team2_id   | int                      | NO   | MUL | NULL    |                |
+| venue      | varchar(100)             | YES  |     | NULL    |                |
+| match_date | date                     | NO   |     | NULL    |                |
+| match_type | enum('Test','ODI','T20') | NO   |     | NULL    |                |
+| winner_id  | int                      | YES  | MUL | NULL    |                |
++------------+--------------------------+------+-----+---------+----------------+
+
+
+CREATE TABLE Innings (
+    innings_id INT AUTO_INCREMENT PRIMARY KEY,
+    match_id INT NOT NULL,
+    team_id INT NOT NULL,
+    total_runs INT DEFAULT 0,
+    wickets INT DEFAULT 0,
+    overs DECIMAL(4, 1) DEFAULT 0.0,
+    FOREIGN KEY (match_id) REFERENCES Matches(match_id) ON DELETE CASCADE,
+    FOREIGN KEY (team_id) REFERENCES Teams(team_id)
+);
+
+
+DSEC
+
++------------+--------------+------+-----+---------+----------------+
+| Field      | Type         | Null | Key | Default | Extra          |
++------------+--------------+------+-----+---------+----------------+
+| innings_id | int          | NO   | PRI | NULL    | auto_increment |
+| match_id   | int          | NO   | MUL | NULL    |                |
+| team_id    | int          | NO   | MUL | NULL    |                |
+| total_runs | int          | YES  |     | 0       |                |
+| wickets    | int          | YES  |     | 0       |                |
+| overs      | decimal(4,1) | YES  |     | 0.0     |                |
++------------+--------------+------+-----+---------+----------------+
+
+
+CREATE TABLE BallByBall (
+    ball_id INT AUTO_INCREMENT PRIMARY KEY,
+    innings_id INT NOT NULL,
+    over_number INT NOT NULL,
+    ball_number INT NOT NULL,
+    batsman_id INT NOT NULL,
+    bowler_id INT NOT NULL,
+    runs INT DEFAULT 0,
+    extras ENUM('Wide', 'No-ball', 'Bye', 'Leg-bye', 'None') DEFAULT 'None',
+    wicket BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (innings_id) REFERENCES Innings(innings_id) ON DELETE CASCADE,
+    FOREIGN KEY (batsman_id) REFERENCES Players(player_id),
+    FOREIGN KEY (bowler_id) REFERENCES Players(player_id)
+);
+
+DESC
+
++-------------+-----------------------------------------------+------+-----+---------+----------------+
+| Field       | Type                                          | Null | Key | Default | Extra          |
++-------------+-----------------------------------------------+------+-----+---------+----------------+
+| ball_id     | int                                           | NO   | PRI | NULL    | auto_increment |
+| innings_id  | int                                           | NO   | MUL | NULL    |                |
+| over_number | int                                           | NO   |     | NULL    |                |
+| ball_number | int                                           | NO   |     | NULL    |                |
+| batsman_id  | int                                           | NO   | MUL | NULL    |                |
+| bowler_id   | int                                           | NO   | MUL | NULL    |                |
+| runs        | int                                           | YES  |     | 0       |                |
+| extras      | enum('Wide','No-ball','Bye','Leg-bye','None') | YES  |     | None    |                |
+| wicket      | tinyint(1)                                    | YES  |     | 0       |                |
++-------------+-----------------------------------------------+------+-----+---------+----------------+
+
+
+CREATE TABLE Statistics (
+    stat_id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id INT NOT NULL,
+    matches_played INT DEFAULT 0,
+    runs_scored INT DEFAULT 0,
+    wickets_taken INT DEFAULT 0,
+    catches INT DEFAULT 0,
+    FOREIGN KEY (player_id) REFERENCES Players(player_id) ON DELETE CASCADE
+);
+
+
+DESC
+
++----------------+------+------+-----+---------+----------------+
+| Field          | Type | Null | Key | Default | Extra          |
++----------------+------+------+-----+---------+----------------+
+| stat_id        | int  | NO   | PRI | NULL    | auto_increment |
+| player_id      | int  | NO   | MUL | NULL    |                |
+| matches_played | int  | YES  |     | 0       |                |
+| runs_scored    | int  | YES  |     | 0       |                |
+| wickets_taken  | int  | YES  |     | 0       |                |
+| catches        | int  | YES  |     | 0       |                |
++----------------+------+------+-----+---------+----------------+
+
+
+
+
